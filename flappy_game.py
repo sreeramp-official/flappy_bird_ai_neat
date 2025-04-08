@@ -282,8 +282,7 @@ def main(genomes, config):
         base.move()
         draw_window(win, birds, pipes, base, score)
 
-    pygame.quit()
-    quit()
+    return
 
 
 def run(config_path):
@@ -302,7 +301,7 @@ def run(config_path):
     p.add_reporter(stats)
 
     winner = p.run(main, 30)
-
+    pygame.quit()
     # show final stats
     print("\nBest genome:\n{!s}".format(winner))
 
