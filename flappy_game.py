@@ -170,7 +170,7 @@ class Base:
         win.blit(self.IMG, (self.x2, self.y))
 
 
-def draw_window(win, bird, pipes, base, score):
+def draw_window(win, birds, pipes, base, score):
     win.blit(BG_IMG, (0, 0))
 
     for pipe in pipes:
@@ -183,7 +183,10 @@ def draw_window(win, bird, pipes, base, score):
     )
 
     base.draw(win)
-    bird.draw(win)
+
+    for bird in birds:
+        bird.draw(win)
+
     pygame.display.update()
 
 
@@ -192,12 +195,12 @@ def main(genomes, config):
     ge = []
     birds = []
 
-    for g in genomes:
-        net = neat.nn.FeedForwardNetwork(g, config)
+    for _, g in genomes:
+        net = neat.nn.FeedForwardNetwork.create(g, config)
         nets.append(net)
         birds.append(Bird(230, 350))
         g.fitness = 0
-        g.append(g)
+        ge.append(g)
 
     base = Base(730)
     pipes = [Pipe(600)]
@@ -211,6 +214,8 @@ def main(genomes, config):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+                pygame.quit()
+                quit()
 
         pipe_ind = 0
         if len(birds) > 0:
@@ -219,6 +224,9 @@ def main(genomes, config):
                 and birds[0].x > pipes[0].x + pipes[0].PIPE_TOP.get_width()
             ):
                 pipe_ind = 1
+        else:
+            run = False
+            break
 
         for x, bird in enumerate(birds):
             bird.move()
@@ -232,7 +240,7 @@ def main(genomes, config):
                 )
             )
 
-            if output > 0.5:
+            if output[0] > 0.5:
                 bird.jump()
 
         add_pipe = False
@@ -264,20 +272,18 @@ def main(genomes, config):
         for r in rem:
             pipes.remove(r)
 
-        for x, bird in enumerate(birds):
-            if bird.y == bird.img.get_height >= 730:
+        for x in reversed(range(len(birds))):
+            bird = birds[x]
+            if bird.y + bird.img.get_height() >= 730 or bird.y < 0:
                 birds.pop(x)
                 nets.pop(x)
                 ge.pop(x)
 
         base.move()
-        draw_window(win, bird, pipes, base, score)
+        draw_window(win, birds, pipes, base, score)
 
     pygame.quit()
     quit()
-
-
-main()
 
 
 def run(config_path):
@@ -303,5 +309,5 @@ def run(config_path):
 
 if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, "config-feedforward.txt")
+    config_path = os.path.join(local_dir, "config_feedforward.txt")
     run(config_path)
